@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Sheets</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #357abd;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+        .error {
+            color: #d32f2f;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Name & Nickname Manager</h1>
+        
+        <div class="form-group">
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" placeholder="Enter full name">
+        </div>
+        
+        <div class="form-group">
+            <label for="nickname">Nickname:</label>
+            <input type="text" id="nickname" placeholder="Enter nickname">
+        </div>
+        
+        <button onclick="submitData()">Save</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_KEY = '';
+        const SPREADSHEET_ID = '';
+        const RANGE = 'Sheet1!A:B';
+
+        function initClient() {
+            gapi.client.init({
+                'apiKey': API_KEY,
+                'discoveryDocs': ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+            }).then(function() {
+                console.log('Google Sheets API initialized');
+            }).catch(function(error) {
+                console.error('Error initializing Google Sheets API:', error);
+                showError('Failed to initialize Google Sheets API');
+            });
+        }
+
+        gapi.load('client', initClient);
+
+        function submitData() {
+            const name = document.getElementById('name').value.trim();
+            const nickname = document.getElementById('nickname').value.trim();
+            
+            if (!name || !nickname) {
+                showError('Please fill in both name and nickname');
+                return;
+            }
+
+            const body = {
+                values: [[name, nickname]]
+            };
+
+            gapi.client.sheets.spreadsheets.values.append({
+                spreadsheetId: SPREADSHEET_ID,
+                range: RANGE,
+                valueInputOption: 'RAW',
+                resource: body
+            }).then(function(response) {
+                showSuccess('Data saved successfully!');
+                clearForm();
+            }).catch(function(error) {
+                console.error('Error:', error);
+                showError('Failed to save data');
+            });
+        }
+
+        function showSuccess(message) {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            results.style.backgroundColor = '#e8f5e9';
+            results.style.color = '#2e7d32';
+            results.textContent = message;
+        }
+
+        function showError(message) {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            results.style.backgroundColor = '#ffebee';
+            results.style.color = '#d32f2f';
+            results.textContent = message;
+        }
+
+        function clearForm() {
+            document.getElementById('name').value = '';
+            document.getElementById('nickname').value = '';
+        }
+    </script>
+</body>
+</html>
